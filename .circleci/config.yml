@@ -39,7 +39,7 @@ jobs:
             apk add --update ansible 
       - run: 
           name: Configure server using ansible playbook
-          command: ansible-playbook -i inventory main.yml
+          command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory main.yml
     
   # smoke_test:
   #   docker:
