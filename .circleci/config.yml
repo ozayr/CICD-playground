@@ -18,7 +18,7 @@ jobs:
           command: |
             echo "[all]" > inventory
             aws cloudformation describe-stacks --stack-name my-stack --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
-      - run: yum install -y tar
+      - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
           paths:
@@ -30,7 +30,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints: [25:06:3c:89:20:7a:8a:ba:59:8a:64:37:f2:5f:34:3a]
-      - run: apk add tar
+      - run: apk add tar gzip
       - attach_workspace:
           at: ./
       - run:
