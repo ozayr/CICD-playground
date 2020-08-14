@@ -17,5 +17,5 @@ jobs:
 workflows:
   mainWorkflow:
     jobs:
-      - create_infrasructure
+      - create_infrastructure
 
