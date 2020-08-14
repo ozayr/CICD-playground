@@ -1,6 +1,6 @@
 - name: Exercise for setting up a web server in an EC2
   hosts: all
-  user: ec2-user
+  user: ubuntu
   environment:
   - ANSIBLE_HOST_KEY_CHECKING: False
   roles:

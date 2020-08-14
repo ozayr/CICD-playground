@@ -29,7 +29,7 @@ jobs:
     - image: python:3.7-alpine3.11
     steps:
       - add_ssh_keys:
-          fingerprints: [25:06:3c:89:20:7a:8a:ba:59:8a:64:37:f2:5f:34:3a]
+          fingerprints: [4b:f1:26:7f:1d:41:42:74:00:af:56:b0:10:e8:b0:e8]
       - run: apk add tar gzip
       - attach_workspace:
           at: ./
@@ -39,7 +39,7 @@ jobs:
             apk add --update ansible 
       - run: 
           name: Configure server using ansible playbook
-          command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory main.yml
+          command: ansible-playbook -i inventory main.yml
     
   # smoke_test:
   #   docker:
