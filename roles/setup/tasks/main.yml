@@ -1,13 +1,12 @@
-- name: "update yum packages."
+- name: "update apt packages."
   become: yes
   apt:
     update_cache: yes
 
-- name: upgrade all packages
+- name: "upgrade packages"
   become: yes
   apt:
-    name: '*'
-    state: latest
+    upgrade: yes
 
 - name: remove dependencies that are no longer required
   become: yes
@@ -16,10 +15,11 @@
 
 - name: "install dependencies."
   become: yes
-  shell: | 
-    curl --silent --location https://rpm.nodesource.com/setup_14.x | sudo bash -
-    sudo apt -y install nodejs
-    
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
+
 - name: "install pm2"
   become: yes
   npm:
