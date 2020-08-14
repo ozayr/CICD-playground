@@ -7,7 +7,7 @@ Resources:
   instance:
     Type: "AWS::EC2::Instance"
     Properties:  
-      ImageId: ami-085fd7441d1390d15
+      ImageId: ami-0a634ae95e11c6f91
       InstanceType: t2.micro
       KeyName: testAwsCli
       SecurityGroups:
