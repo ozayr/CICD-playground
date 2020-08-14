@@ -13,14 +13,24 @@ jobs:
             aws cloudformation deploy \
             --template-file template.yml \
             --stack-name my-stack
+      - run:
+          name: get public IP of EC2 instance created
+          command: |
+            echo "[all]" > inventory
+            aws cloudformation describe-stacks --stack-name my-stack --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./
 
   configure_infrastructure:
     docker:
     - image: python:3.7-alpine3.11
     steps:
-      - checkout
       - add_ssh_keys:
           fingerprints: [25:06:3c:89:20:7a:8a:ba:59:8a:64:37:f2:5f:34:3a]
+      - attach_workspace:
+          at: ./
       - run:
           name: Install dependencies ie ansible
           command: | 
@@ -43,5 +53,8 @@ jobs:
 workflows:
   mainWorkflow:
     jobs:
-      - configure_infrastructure
+      - create_infrastructure
+      - configure_infrastructure:
+          requires: 
+            - create_infrastructure
 
