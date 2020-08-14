@@ -1,0 +1,43 @@
+- name: "update yum packages."
+  become: yes
+  yum:
+    update_cache: yes
+
+- name: upgrade all packages
+  become: yes
+  yum:
+    name: '*'
+    state: latest
+
+- name: remove dependencies that are no longer required
+  become: yes
+  yum:
+    autoremove: yes
+
+- name: "install dependencies."
+  become: yes
+  shell: | 
+    curl --silent --location https://rpm.nodesource.com/setup_14.x | sudo bash -
+    sudo yum -y install nodejs
+    
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: Creates directory
+  file:
+    path: ~/web
+    state: directory
+
+- name: Copy index test page
+  template:
+    src: "files/index.js"
+    dest: "~/web/index.js"
+
+- name: Executing node
+  shell: |
+    pm2 start ~/web/index.js -f

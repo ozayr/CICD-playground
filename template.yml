@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  spin up simple ec2 with ssh access
+    
+Resources:
+
+  instance:
+    Type: "AWS::EC2::Instance"
+    Properties:  
+      ImageId: ami-085fd7441d1390d15
+      InstanceType: t2.micro
+      KeyName: testAwsCli
+      SecurityGroups:
+        - !Ref secGroup
+
+  secGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Sec group for ec2 ssh access #required
+  
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22 
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  
