@@ -28,6 +28,16 @@ jobs:
       - run: 
           name: Configure server using ansible playbook
           command: ansible-playbook -i inventory main.yml
+    
+  smoke_test:
+    docker:
+    - image: alpine:latest
+    steps: 
+      - run: 
+          name: simple curl smoke test
+          command: |
+            if curl 
+
         
             
 workflows:
