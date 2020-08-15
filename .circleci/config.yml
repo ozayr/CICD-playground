@@ -8,7 +8,7 @@ commands:
           name: Destroy infrstructure on fail
           command: |
             aws cloudformation  delete-stack --stack-name prod-${CIRCLE_WORKFLOW_ID}
-
+          when: on_fail
 
 jobs:
   create_backend_infrastructure:
@@ -33,7 +33,7 @@ jobs:
           paths:
             - ./
       - destroy_stack:
-          when: on_fail
+          
 
   configure_backend_infrastructure:
     docker:
