@@ -33,7 +33,7 @@ jobs:
           paths:
             - ./
       - destroy_stack:
-        when: on_fail
+          when: on_fail
 
   configure_backend_infrastructure:
     docker:
