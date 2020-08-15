@@ -21,7 +21,7 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file template.yml \
-            --stack-name my-stack
+            --stack-name prod-${CIRCLE_WORKFLOW_ID}
       - run:
           name: get public IP of EC2 instance created
           command: |
@@ -51,6 +51,7 @@ jobs:
       - run: 
           name: Configure server using ansible playbook
           command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory main.yml
+      - destroy_stack
     
   back_end_smoke_test:
     docker:
@@ -62,6 +63,7 @@ jobs:
       - run: 
           name: simple curl smoke test test backend API
           command: |
+            ip = awk '/./{line=$0} END{print line}' inventory
             if curl 
 
         
