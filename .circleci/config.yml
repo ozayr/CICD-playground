@@ -32,7 +32,7 @@ jobs:
           root: ./
           paths:
             - ./
-      - destroy_stack:
+      - destroy_stack
           
 
   configure_backend_infrastructure:
