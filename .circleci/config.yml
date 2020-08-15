@@ -2,13 +2,18 @@
 version: 2.1 
 
 commands:
-  destroy_stack:
-    steps:
-      - run: 
-          name: Destroy infrstructure on fail
-          command: |
-            aws cloudformation  delete-stack --stack-name prod-${CIRCLE_WORKFLOW_ID}
-          when: on_fail
+    destroy_backend_stack:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - run: aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID}
+    destroy_frontend_stack:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - run: aws s3 rm s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --recursive # will change to olde_deployment
+        - run: aws cloudformation delete-stack --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}
+  
 
 jobs:
   create_backend_infrastructure:
@@ -20,19 +25,20 @@ jobs:
           name: create backend infra 
           command: |
             aws cloudformation deploy \
-            --template-file template.yml \
-            --stack-name prod-${CIRCLE_WORKFLOW_ID}
+            --template-file backend_cfn.yml \
+            --stack-name prod_backend-${CIRCLE_WORKFLOW_ID}
       - run:
           name: get public IP of EC2 instance created
           command: |
             echo "[all]" > inventory
-            aws cloudformation describe-stacks --stack-name prod-${CIRCLE_WORKFLOW_ID} --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
+            aws cloudformation describe-stacks --stack-name backend-${CIRCLE_WORKFLOW_ID} --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
           paths:
-            - ./
-      - destroy_stack
+            - ./inventory
+      - destroy_backend_stack:
+          when: on_fail
           
 
   configure_backend_infrastructure:
@@ -41,17 +47,19 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints: [4b:f1:26:7f:1d:41:42:74:00:af:56:b0:10:e8:b0:e8]
+      - checkout
       - run: apk add tar gzip
       - attach_workspace:
           at: ./
       - run:
-          name: Install dependencies ie ansible
+          name: Install ansible
           command: | 
             apk add --update ansible 
       - run: 
           name: Configure server using ansible playbook
-          command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory main.yml
-      - destroy_stack
+          command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup_backend.yml
+      - destroy_backend_stack:
+          when: on_fail
     
   back_end_smoke_test:
     docker:
@@ -64,10 +72,96 @@ jobs:
           name: simple curl smoke test test backend API
           command: |
             ip = awk '/./{line=$0} END{print line}' inventory
-            if curl 
+            if curl -s --head "$(ip):3000"
+            then
+              return 0
+            else 
+              return 1
+            fi 
+      - destroy_backend_stack:
+          when: on_fail
+         
 
-        
-            
+  create_and_deploy_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+        name: setup s3 bucket for new frontend
+        command: | 
+          aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+        name: add new frontend files to bucket
+        command: aws s3 sync . s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
+      - run: aws configure get region >> region 
+      - run: yum install -y tar gzip
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./region
+      - destroy_front_stack:
+          when: on_fail
+
+  smoke_test_front_end:
+    docker:
+      - image: alpine:latest
+    steps: 
+      - run: apk add tar gzip
+      - attach_workspace:
+          at: ./
+      - run: 
+          name: simple curl smoke test test frontend
+          command: |
+            region = awk '/./{line=$0} END{print line}' region
+            if curl -s --head "frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(ip).amazonaws.com"
+            then
+              return 0
+            else 
+              return 1
+            fi 
+      - destroy_front_stack:
+          when: on_fail
+
+      
+  get_last_deployment_id:
+    docker:
+        - image: amazon/aws-cli
+    steps:
+    - run:
+      name: get deployment id for cleanup
+      command: |
+        aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text >> old_deployment
+    - run: yum install -y tar gzip
+    - persist_to_workspace:
+          root: ./
+          paths:
+            - old_deployment
+
+  
+  promote_to_production:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+        name: redirect cloudfront to new origin
+        command: | 
+          aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID=frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --tags project=mycicdwebapp
+   
+  clean_up_old_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - run: yum install -y tar gzip
+      - attach_workspace:
+          at: ./
+      - run: aws s3 rm s3://prod-deploy-app --recursive # will change to olde_deployment
+      - run: aws cloudformation delete-stack --stack-name prod-deploy-app
+  
+  
+
+          
 workflows:
   mainWorkflow:
     jobs:
@@ -75,7 +169,20 @@ workflows:
       - configure_backend_infrastructure:
           requires: 
             - create_backend_infrastructure
-      # - back_end_smoke_test:
-      #     requires:
-      #      - configure_backend_infrastructure
+      - back_end_smoke_test:
+          requires:
+           - configure_backend_infrastructure
+      - create_and_deploy_front_end
+      - smoke_test_front_end:
+          requires:
+            - create_and_deploy_front_end
+      - get_last_deployment_id
+      - promote_to_production:
+          requires: 
+            - smoke_test_front_end
+      - clean_up_old_front_end:
+          requires:
+            - get_last_deployment_id
+            - promote_to_production
+
 

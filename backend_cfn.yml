@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
-  spin up simple ec2 with ssh access
+  backend resource infrastructure
     
 Resources:
 
