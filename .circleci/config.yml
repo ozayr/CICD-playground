@@ -36,8 +36,8 @@ jobs:
           root: ./
           paths:
             - ./inventory
-      - destroy_backend_stack:
-          when: on_fail 
+      - destroy_backend_stack
+        when: on_fail 
          
           
 
