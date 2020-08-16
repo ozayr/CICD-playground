@@ -32,7 +32,7 @@ jobs:
           name: get public IP of EC2 instance created
           command: |
             echo "[all]" > inventory
-            aws cloudformation describe-stacks --query "Stacks[0].Outputs[?OutputKey==\`publicIP\`].OutputValue" --output text >> inventory
+            aws cloudformation describe-stacks --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[?OutputKey==\`publicIP\`].OutputValue" --output text >> inventory
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
@@ -91,10 +91,10 @@ jobs:
       - run:
           name: setup s3 bucket for new frontend
           command: | 
-            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-133 --parameter-overrides NAME=frontend-bucket-133 --region us-west-2
+            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-{CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
       - run:
           name: add new frontend files to bucket
-          command: aws s3 sync . s3://frontend-bucket-133 --exclude '*' --include '*.html' --delete
+          command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
       - run: aws configure get region >> region 
       - run: yum install -y tar gzip
       - persist_to_workspace:
