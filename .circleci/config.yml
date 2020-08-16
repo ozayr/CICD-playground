@@ -6,7 +6,7 @@ commands:
       docker:
         - image: amazon/aws-cli
       steps:
-        - run: aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID}
+        - run: aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
     destroy_frontend_stack:
       docker:
         - image: amazon/aws-cli
@@ -26,12 +26,12 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file backend_cfn.yml \
-            --stack-name prod_backend-${CIRCLE_WORKFLOW_ID}
+            --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: get public IP of EC2 instance created
           command: |
             echo "[all]" > inventory
-            aws cloudformation describe-stacks --stack-name backend-${CIRCLE_WORKFLOW_ID} --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
+            aws cloudformation describe-stacks --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7} --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
@@ -159,9 +159,6 @@ jobs:
       - run: aws s3 rm s3://prod-deploy-app --recursive # will change to olde_deployment
       - run: aws cloudformation delete-stack --stack-name prod-deploy-app
   
-  
-
-          
 workflows:
   mainWorkflow:
     jobs:

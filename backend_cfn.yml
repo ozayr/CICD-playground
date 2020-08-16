@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
   backend resource infrastructure
-    
+
+parameters:
+  backend_stack_name:
+    Type: String
+
 Resources:
 
   instance:
@@ -32,3 +36,8 @@ Outputs:
   publicIP:
     Value: !GetAtt instance.PublicIp
     Description: IP of created instance
+
+  backend_stack_name:
+    Value: !Sub ${backend_stack_name}
+    Export:
+      Name: backend_stack_name
