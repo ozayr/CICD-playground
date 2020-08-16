@@ -24,18 +24,19 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run: aws --version
       - run:
           name: create backend infra 
           command: |
             aws cloudformation deploy \ 
               --template-file backend_cfn.yml \ 
-              --stack-name backend 
-              
+              --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7} \ 
+              --parameter-overrides BackendStackName=backend-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: get public IP of EC2 instance created
           command: |
             echo "[all]" > inventory
-            aws cloudformation describe-stacks --stack-name backend --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
+            aws cloudformation describe-stacks --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7} --query "Stacks[0].Outputs[0].OutputValue" --output text >> inventory
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
