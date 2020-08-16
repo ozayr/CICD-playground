@@ -4,6 +4,7 @@ Description: |
 
 Parameters:
   BackendStackName:
+    Description: stackname for cleanup
     Type: String
 
 Resources:
@@ -38,6 +39,6 @@ Outputs:
     Description: IP of created instance
 
   BackendStackName:
-    Value: !Sub ${BackendStackName}
+    Value: !Ref BackendStackName
     Export:
       Name: BackendStackName
