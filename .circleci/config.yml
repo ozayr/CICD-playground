@@ -4,13 +4,20 @@ version: 2.1
 commands:
   destroy_backend_stack:
     steps:
-      - run: pip install aws-cli
-      - run: aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+      - run: 
+          command: | 
+            pip install aws-cli\
+            && aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+          when: on_fail
+        
   destroy_frontend_stack:
     steps:
-      - run: pip install aws-cli
-      - run: aws s3 rm s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --recursive # will change to olde_deployment
-      - run: aws cloudformation delete-stack --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}
+      - run: 
+          command: |
+            pip install aws-cli\
+            && aws s3 rm s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --recursive\ # will change to olde_deployment
+            && aws cloudformation delete-stack --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}
+          when: on_fail
   
 
 jobs:
@@ -37,7 +44,7 @@ jobs:
           paths:
             - ./inventory
       - destroy_backend_stack
-        when: on_fail 
+         
          
           
 
@@ -58,8 +65,8 @@ jobs:
       - run: 
           name: Configure server using ansible playbook
           command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup_backend.yml
-      - destroy_backend_stack:
-          when: on_fail 
+      - destroy_backend_stack
+           
     
   back_end_smoke_test:
     docker:
@@ -78,8 +85,8 @@ jobs:
             else 
               return 1
             fi
-      - destroy_backend_stack:
-          when: on_fail 
+      - destroy_backend_stack
+          
   
          
 
@@ -101,8 +108,8 @@ jobs:
           root: ./
           paths:
             - ./region
-      - destroy_frontend_stack:
-          when: on_fail
+      - destroy_frontend_stack
+         
 
   smoke_test_front_end:
     docker:
@@ -121,8 +128,8 @@ jobs:
             else 
               return 1
             fi
-      - destroy_frontend_stack:
-          when: on_fail
+      - destroy_frontend_stack
+         
 
       
   get_last_deployment_id:
