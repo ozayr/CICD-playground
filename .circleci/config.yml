@@ -28,10 +28,7 @@ jobs:
       - run:
           name: create backend infra 
           command: |
-            aws cloudformation deploy \ 
-              --template-file backend_cfn.yml \ 
-              --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7} \ 
-              --parameter-overrides BackendStackName=backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation deploy --template-file backend_cfn.yml --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides BackendStackName="backend-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: get public IP of EC2 instance created
           command: |
