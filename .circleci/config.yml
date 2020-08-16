@@ -39,7 +39,6 @@ jobs:
           paths:
             - ./inventory
       
-         
         
   configure_backend_infrastructure:
     docker:
@@ -71,12 +70,12 @@ jobs:
       - run: 
           name: simple curl smoke test test backend API
           command: |
-            ip = awk '/./{line=$0} END{print line}' inventory
-            if curl -s --head "$(ip):3000"
+            publicIP=$(awk '/./{line=$0} END{print line}' inventory)
+            if curl -s --head "${publicIP}:3000"
             then
-              return 0
+              exit 0
             else 
-              return 1
+              exit 1
             fi
       - destroy_backend_stack
           
@@ -91,7 +90,7 @@ jobs:
       - run:
           name: setup s3 bucket for new frontend
           command: | 
-            aws cloudformation deploy --template-file bucket.yml --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="frontend-{CIRCLE_WORKFLOW_ID:0:7}"" --region us-west-2
+            aws cloudformation deploy --template-file bucket.yml --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="frontend-{CIRCLE_WORKFLOW_ID:0:7}" --region us-west-2
       - run:
           name: add new frontend files to bucket
           command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
@@ -114,12 +113,12 @@ jobs:
       - run: 
           name: simple curl smoke test test frontend
           command: |
-            region = awk '/./{line=$0} END{print line}' region
-            if curl -s --head "frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(ip).amazonaws.com"
+            region=$(awk '/./{line=$0} END{print line}' region)
+            if curl -s --head "frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(region).amazonaws.com"
             then
-              return 0
+              exit 0
             else 
-              return 1
+              exit 1
             fi
       - destroy_frontend_stack
          
