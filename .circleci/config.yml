@@ -94,12 +94,12 @@ jobs:
     steps:
       - checkout
       - run:
-        name: setup s3 bucket for new frontend
-        command: | 
-          aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7}
+          name: setup s3 bucket for new frontend
+          command: | 
+            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7}
       - run:
-        name: add new frontend files to bucket
-        command: aws s3 sync . s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
+          name: add new frontend files to bucket
+          command: aws s3 sync . s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
       - run: aws configure get region >> region 
       - run: yum install -y tar gzip
       - persist_to_workspace:
@@ -139,9 +139,9 @@ jobs:
         - image: amazon/aws-cli
     steps:
     - run:
-      name: get deployment id for cleanup
-      command: |
-        aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text >> old_deployment
+        name: get deployment id for cleanup
+        command: |
+          aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text >> old_deployment
     - run: yum install -y tar gzip
     - persist_to_workspace:
           root: ./
@@ -155,9 +155,9 @@ jobs:
     steps:
       - checkout
       - run:
-        name: redirect cloudfront to new origin
-        command: | 
-          aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID=frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --tags project=mycicdwebapp
+          name: redirect cloudfront to new origin
+          command: | 
+           aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID=frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --tags project=mycicdwebapp
    
   clean_up_old_front_end:
     docker:
