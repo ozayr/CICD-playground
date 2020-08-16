@@ -93,8 +93,7 @@ jobs:
             aws cloudformation deploy --template-file bucket.yml --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="frontend-${CIRCLE_WORKFLOW_ID:0:7}" --region us-west-2
       - run:
           name: add new frontend files to bucket
-          command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
-      - run: echo $AWS_DEFAULT_REGION >> region 
+          command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete 
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
@@ -113,8 +112,7 @@ jobs:
       - run: 
           name: simple curl smoke test test frontend
           command: |
-            region=$(awk '/./{line=$0} END{print line}' region)
-            if curl -s --head "frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(region).amazonaws.com"
+            if curl -s --head "frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             then
               exit 0
             else 
