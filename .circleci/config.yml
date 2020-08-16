@@ -6,16 +6,14 @@ commands:
     steps:
       - run: 
           command: | 
-            pip install aws-cli\
-            && aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation  delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
           when: on_fail
         
   destroy_frontend_stack:
     steps:
       - run: 
           command: |
-            pip install aws-cli\
-            && aws s3 rm s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --recursive\ # will change to olde_deployment
+            pip install aws-cli && aws s3 rm s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --recursive \ # will change to olde_deployment
             && aws cloudformation delete-stack --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}
           when: on_fail
   
@@ -31,8 +29,8 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file backend_cfn.yml \
-            --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}\
-            --parameter-overrides backend_stack_name=backend-${CIRCLE_WORKFLOW_ID:0:7}
+            --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}"\
+            --parameter-overrides backend_stack_name="backend-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: get public IP of EC2 instance created
           command: |
@@ -43,11 +41,9 @@ jobs:
           root: ./
           paths:
             - ./inventory
-      - destroy_backend_stack
+      
          
-         
-          
-
+        
   configure_backend_infrastructure:
     docker:
     - image: python:3.7-alpine3.11
@@ -98,7 +94,7 @@ jobs:
       - run:
           name: setup s3 bucket for new frontend
           command: | 
-            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation deploy --template-file bucket.yml --stack-name "frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: add new frontend files to bucket
           command: aws s3 sync . s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
