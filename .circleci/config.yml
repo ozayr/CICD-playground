@@ -94,7 +94,7 @@ jobs:
       - run:
           name: add new frontend files to bucket
           command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
-      - run: aws configure get region >> region 
+      - run: echo $AWS_DEFAULT_REGION >> region 
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ./
