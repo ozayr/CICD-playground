@@ -91,7 +91,7 @@ jobs:
       - run:
           name: setup s3 bucket for new frontend
           command: | 
-            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-{CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
+            aws cloudformation deploy --template-file bucket.yml --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="frontend-{CIRCLE_WORKFLOW_ID:0:7}"" --region us-west-2
       - run:
           name: add new frontend files to bucket
           command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
@@ -115,7 +115,7 @@ jobs:
           name: simple curl smoke test test frontend
           command: |
             region = awk '/./{line=$0} END{print line}' region
-            if curl -s --head "frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(ip).amazonaws.com"
+            if curl -s --head "frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-$(ip).amazonaws.com"
             then
               return 0
             else 
@@ -148,7 +148,7 @@ jobs:
       - run:
           name: redirect cloudfront to new origin
           command: | 
-           aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID=frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --tags project=mycicdwebapp
+           aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID="frontend-${CIRCLE_WORKFLOW_ID:0:7}" --tags project=mycicdwebapp
    
   clean_up_old_front_end:
     docker:
