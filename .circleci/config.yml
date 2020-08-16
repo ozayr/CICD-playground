@@ -24,7 +24,8 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file backend_cfn.yml \
-            --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+            --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}\
+            --parameter-overrides backend_stack_name=backend-${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: get public IP of EC2 instance created
           command: |
@@ -35,10 +36,8 @@ jobs:
           root: ./
           paths:
             - ./inventory
-      - when:
-          condition: on_fail
-          steps:
-            - destroy_backend_stack
+      - destroy_backend_stack:
+          when: on_fail 
          
           
 
@@ -59,10 +58,8 @@ jobs:
       - run: 
           name: Configure server using ansible playbook
           command: ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory setup_backend.yml
-      - when:
-          condition: on_fail
-          steps:
-            - destroy_backend_stack
+      - destroy_backend_stack:
+          when: on_fail 
     
   back_end_smoke_test:
     docker:
@@ -81,10 +78,8 @@ jobs:
             else 
               return 1
             fi
-      - when:
-          condition: on_fail
-          steps:
-            - destroy_backend_stack 
+      - destroy_backend_stack:
+          when: on_fail 
   
          
 
@@ -106,10 +101,8 @@ jobs:
           root: ./
           paths:
             - ./region
-      - when:
-          condition: on_fail
-          steps:
-            - destroy_frontend_stack
+      - destroy_frontend_stack:
+          when: on_fail
 
   smoke_test_front_end:
     docker:
@@ -127,11 +120,9 @@ jobs:
               return 0
             else 
               return 1
-            fi 
-      - when:
-          condition: on_fail
-          steps:
-            - destroy_frontend_stack
+            fi
+      - destroy_frontend_stack:
+          when: on_fail
 
       
   get_last_deployment_id:
