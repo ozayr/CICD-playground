@@ -91,10 +91,10 @@ jobs:
       - run:
           name: setup s3 bucket for new frontend
           command: | 
-            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides NAME=frontend-bucket-{CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
+            aws cloudformation deploy --template-file bucket.yml --stack-name frontend-bucket-133 --parameter-overrides NAME=frontend-bucket-133 --region us-west-2
       - run:
           name: add new frontend files to bucket
-          command: aws s3 sync . s3://frontend-bucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete
+          command: aws s3 sync . s3://frontend-bucket-133 --exclude '*' --include '*.html' --delete
       - run: aws configure get region >> region 
       - run: yum install -y tar gzip
       - persist_to_workspace:
