@@ -95,10 +95,6 @@ jobs:
           name: add new frontend files to bucket
           command: aws s3 sync . s3://frontend-${CIRCLE_WORKFLOW_ID:0:7} --exclude '*' --include '*.html' --delete 
       - run: yum install -y tar gzip
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - ./region
       - destroy_frontend_stack
          
 
