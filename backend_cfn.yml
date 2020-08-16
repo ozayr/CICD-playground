@@ -2,10 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: |
   backend resource infrastructure
 
-Parameters:
-  BackendStackName:
-    Description: stackname for cleanup
-    Type: String
 
 Resources:
 
@@ -37,8 +33,3 @@ Outputs:
   publicIP:
     Value: !GetAtt instance.PublicIp
     Description: IP of created instance
-
-  BackendStackName:
-    Value: !Ref BackendStackName
-    Export:
-      Name: BackendStackName
